@@ -7,13 +7,24 @@ import { CommentModule } from './comment/comment.module';
 import { ImageModule } from './image/image.module';
 import { PlannerModule } from './planner/planner.module';
 import { configDotenv } from 'dotenv';
+import { RedisModule } from '@liaoliaots/nestjs-redis';
+import { APP_FILTER } from '@nestjs/core';
+import { HttpExceptionFilter } from './filter/http-exception.filter';
 
 configDotenv();
 
 @Module({
   imports: [
-    UserModule,
     MongooseModule.forRoot(process.env.MONGODB_URL),
+    RedisModule.forRoot({
+      readyLog: true,
+      config: {
+        host: process.env.REDIS_HOST,
+        port: Number(process.env.REDIS_PORT),
+        password: process.env.REDIS_PASS,
+      },
+    }),
+    UserModule,
     DiaryModule,
     LikeModule,
     CommentModule,
@@ -21,6 +32,11 @@ configDotenv();
     PlannerModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
+    },
+  ],
 })
 export class AppModule {}
