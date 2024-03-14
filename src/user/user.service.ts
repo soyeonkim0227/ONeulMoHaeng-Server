@@ -64,10 +64,13 @@ export class UserService {
   }
 
   async signup(signupDto: SignupRequestDto) {
-    const { email, code, password } = signupDto;
+    const { email, code, password, nickname } = signupDto;
 
     const existEmail = await this.userModel.findOne({ email });
     if (existEmail) throw new ConflictException('이미 존재하는 이메일');
+
+    const existNickname = await this.userModel.findOne({ nickname });
+    if (existNickname) throw new ConflictException('이미 존재하는 닉네임');
 
     signupDto.password = await bcrypt.hash(password, 10);
 
