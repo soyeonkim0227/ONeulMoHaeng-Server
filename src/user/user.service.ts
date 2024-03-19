@@ -1,4 +1,9 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { SignupRequestDto } from './dto/signup.dto';
@@ -8,6 +13,12 @@ import Mail from 'nodemailer/lib/mailer';
 import Redis from 'ioredis';
 import { InjectRedis } from '@liaoliaots/nestjs-redis';
 import * as bcrypt from 'bcrypt';
+import { LoginRequestDto } from './dto/login.dto';
+import { JwtService } from '@nestjs/jwt';
+import { UserPayloadDto } from './dto/userPayload.dto';
+import { configDotenv } from 'dotenv';
+
+configDotenv();
 
 interface EmailOptions {
   to: string;
@@ -21,6 +32,7 @@ export class UserService {
   constructor(
     @InjectRedis() private readonly redis: Redis,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private jwt: JwtService,
   ) {
     this.tranporter = nodemailer.createTransport({
       service: 'gmail',
@@ -78,5 +90,79 @@ export class UserService {
       const newPerson = await new this.userModel(signupDto);
       return await newPerson.save();
     }
+  }
+
+  async login(loginDto: LoginRequestDto): Promise<object> {
+    const { email, password } = loginDto;
+
+    const findUser = await this.userModel.findOne({ email });
+    if (!findUser) throw new NotFoundException('존재하지 않는 이메일');
+
+    const matchedPw = await bcrypt.compare(password, findUser.password);
+    if (!matchedPw) throw new ConflictException('비밀번호 불일치');
+
+    const payload = {
+      id: findUser.id,
+      email,
+    };
+
+    const access = await this.getAccessToken(payload);
+    const refresh = await this.getRefreshToken(payload);
+
+    await this.redis.set(`${email}-RefreshToken`, refresh);
+
+    return {
+      access,
+      refresh,
+    };
+  }
+
+  private async getAccessToken(userDto: UserPayloadDto): Promise<string> {
+    const accessToken = await this.jwt.sign(userDto, {
+      secret: process.env.JWT_SECRET_ACCESS,
+    });
+
+    return accessToken;
+  }
+
+  private async getRefreshToken(userDto: UserPayloadDto): Promise<string> {
+    const refreshToken = await this.jwt.sign(userDto, {
+      secret: process.env.JWT_SECRET_REFRESH,
+      expiresIn: '1w',
+    });
+
+    return refreshToken;
+  }
+
+  async validateAccess(accessToken: string): Promise<UserPayloadDto> {
+    const accesstoken = accessToken.split(' ')[1];
+
+    const access = await this.jwt.verify(accesstoken, {
+      secret: process.env.JWT_SECRET_ACCESS,
+    });
+
+    if (!access) throw new UnauthorizedException('리프레시 토큰 검증 필요');
+
+    return access;
+  }
+
+  async validateRefresh(refreshToken: string): Promise<object> {
+    const refreshtoken = refreshToken.split(' ')[1];
+
+    const refresh = await this.jwt.verify(refreshtoken, {
+      secret: process.env.JWT_SECRET_REFRESH,
+    });
+
+    if (!refresh) throw new UnauthorizedException('재로그인 필요');
+
+    const accessToken = await this.getAccessToken({
+      id: refresh.id,
+      email: refresh.email,
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+    };
   }
 }

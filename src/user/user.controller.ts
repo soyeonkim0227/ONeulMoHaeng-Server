@@ -1,4 +1,5 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Post } from '@nestjs/common';
+import { LoginRequestDto } from './dto/login.dto';
 import { SignupRequestDto } from './dto/signup.dto';
 import { UserService } from './user.service';
 
@@ -23,6 +24,30 @@ export class UserController {
     return {
       statusCode: 201,
       statusMsg: 'Created',
+    };
+  }
+
+  @Post('login')
+  async login(@Body() loginDto: LoginRequestDto): Promise<object> {
+    const data = await this.userService.login(loginDto);
+
+    return {
+      data,
+      statusCode: 200,
+      statusMsg: 'Ok',
+    };
+  }
+
+  @Get('token')
+  async validateRefresh(
+    @Headers('Authorization') refreshToken: string,
+  ): Promise<object> {
+    const data = await this.userService.validateRefresh(refreshToken);
+
+    return {
+      data,
+      statusCode: 200,
+      statusMsg: 'Ok',
     };
   }
 }
