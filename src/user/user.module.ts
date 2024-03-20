@@ -4,6 +4,9 @@ import { UserController } from './user.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './schema/user.schema';
 import { JwtModule } from '@nestjs/jwt';
+import { configDotenv } from 'dotenv';
+
+configDotenv();
 
 @Module({
   imports: [

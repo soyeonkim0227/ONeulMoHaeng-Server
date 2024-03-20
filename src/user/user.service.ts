@@ -102,7 +102,7 @@ export class UserService {
     if (!matchedPw) throw new ConflictException('비밀번호 불일치');
 
     const payload = {
-      id: findUser.id,
+      userId: findUser.id,
       email,
     };
 
@@ -156,7 +156,7 @@ export class UserService {
     if (!refresh) throw new UnauthorizedException('재로그인 필요');
 
     const accessToken = await this.getAccessToken({
-      id: refresh.id,
+      userId: refresh.id,
       email: refresh.email,
     });
 
