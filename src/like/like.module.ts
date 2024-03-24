@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { LikeService } from './like.service';
 import { LikeController } from './like.controller';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Like, LikeSchema } from './schema/like.schema';
+import { Like } from './entities/like.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Like.name, schema: LikeSchema }]),
+    TypeOrmModule.forFeature([Like])
   ],
   providers: [LikeService],
   controllers: [LikeController],

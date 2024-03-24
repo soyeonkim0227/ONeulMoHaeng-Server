@@ -1,20 +1,16 @@
 import { Module } from '@nestjs/common';
 import { DiaryService } from './diary.service';
 import { DiaryController } from './diary.controller';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Diary, DiarySchema } from './schema/diary.schema';
-import { DiaryImage, DiaryImageSchema } from './schema/diaryImage.schema';
+import { Diary } from './entities/diary.entity';
+import { DiaryImage } from './entities/diaryImage.entity';
 import { UserService } from 'src/user/user.service';
-import { User, UserSchema } from 'src/user/schema/user.schema';
+import { User } from 'src/user/entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: User.name, schema: UserSchema },
-      { name: Diary.name, schema: DiarySchema },
-      { name: DiaryImage.name, schema: DiaryImageSchema },
-    ]),
+    TypeOrmModule.forFeature([User, Diary, DiaryImage]),
     JwtModule.register({
       secret: process.env.JWT_SECRET_KEY,
       signOptions: { expiresIn: '2h' },

@@ -4,10 +4,8 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { SignupRequestDto } from './dto/signup.dto';
-import { User, UserDocument } from './schema/user.schema';
+import { User } from './entities/user.entity';
 import * as nodemailer from 'nodemailer';
 import Mail from 'nodemailer/lib/mailer';
 import Redis from 'ioredis';
@@ -17,6 +15,8 @@ import { LoginRequestDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { UserPayloadDto } from './dto/userPayload.dto';
 import { configDotenv } from 'dotenv';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 configDotenv();
 
@@ -31,7 +31,7 @@ interface EmailOptions {
 export class UserService {
   constructor(
     @InjectRedis() private readonly redis: Redis,
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectRepository(User) private userEntity: Repository<User>,
     private jwt: JwtService,
   ) {
     this.tranporter = nodemailer.createTransport({
@@ -53,7 +53,7 @@ export class UserService {
     const number = String(generateRandom(1, 999999)).padStart(6, '0');
 
     // 유효시간 5분
-    await this.redis.set(email, number, 'EX', 1000 * 300);
+    await this.redis.set(email, number, 'EX', 60 * 5);
 
     const emailOptions: EmailOptions = {
       to: email,
@@ -64,9 +64,11 @@ export class UserService {
 
     await this.tranporter.sendMail(emailOptions);
 
+    console.log({ number });
     return number;
   }
 
+  // TODO: 엥 redis에 저장되지 않은 이메일이라면?? 에러처리 해야됨.
   private async verifyCode(email: string, code: string) {
     const getCode = await this.redis.get(email);
     if (Number(code) !== Number(getCode))
@@ -78,24 +80,23 @@ export class UserService {
   async signup(signupDto: SignupRequestDto) {
     const { email, code, password, nickname } = signupDto;
 
-    const existEmail = await this.userModel.findOne({ email });
+    const existEmail = await this.userEntity.findOneBy({ email });
     if (existEmail) throw new ConflictException('이미 존재하는 이메일');
 
-    const existNickname = await this.userModel.findOne({ nickname });
+    const existNickname = await this.userEntity.findOneBy({ nickname });
     if (existNickname) throw new ConflictException('이미 존재하는 닉네임');
 
     signupDto.password = await bcrypt.hash(password, 10);
 
     if (await this.verifyCode(email, code)) {
-      const newPerson = await new this.userModel(signupDto);
-      return await newPerson.save();
+      return await this.userEntity.save(signupDto);
     }
   }
 
   async login(loginDto: LoginRequestDto): Promise<object> {
     const { email, password } = loginDto;
 
-    const findUser = await this.userModel.findOne({ email });
+    const findUser = await this.userEntity.findOneBy({ email });
     if (!findUser) throw new NotFoundException('존재하지 않는 이메일');
 
     const matchedPw = await bcrypt.compare(password, findUser.password);
@@ -140,6 +141,7 @@ export class UserService {
     const access = await this.jwt.verify(accesstoken, {
       secret: process.env.JWT_SECRET_ACCESS,
     });
+    console.log({ access });
 
     if (!access) throw new UnauthorizedException('리프레시 토큰 검증 필요');
 
