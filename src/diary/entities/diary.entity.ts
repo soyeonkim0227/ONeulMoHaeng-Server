@@ -32,7 +32,9 @@ export class Diary {
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => User, (user) => user.diary)
+  @ManyToOne(() => User, (user) => user.diary, {
+    onDelete: 'CASCADE'
+  })
   @JoinColumn({ name: 'userId' })
   user: User;
 

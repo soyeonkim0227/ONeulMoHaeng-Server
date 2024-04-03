@@ -1,6 +1,12 @@
-import { Diary } from "src/diary/entities/diary.entity";
-import { User } from "src/user/entities/user.entity";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Diary } from 'src/diary/entities/diary.entity';
+import { User } from 'src/user/entities/user.entity';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('tbl_comment')
 export class Comment {
@@ -22,17 +28,15 @@ export class Comment {
   @Column()
   updatedAt: Date;
 
-  @ManyToOne(
-    () => Diary,
-    diary => diary.comment
-  )
+  @ManyToOne(() => Diary, (diary) => diary.comment, {
+    onDelete: 'CASCADE'
+  })
   @JoinColumn({ name: 'diaryId' })
   diary: Diary;
 
-  @ManyToOne(
-    () => User,
-    user => user.comment
-  )
+  @ManyToOne(() => User, (user) => user.comment, {
+    onDelete: 'CASCADE'
+  })
   @JoinColumn({ name: 'userId' })
   user: User;
 }

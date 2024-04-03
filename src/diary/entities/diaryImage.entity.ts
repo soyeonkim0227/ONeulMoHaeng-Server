@@ -1,4 +1,11 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Diary } from './diary.entity';
 
 @Entity('tbl_diary_image')
@@ -12,10 +19,9 @@ export class DiaryImage {
   @Column()
   imageUrl: string;
 
-  @ManyToOne(
-    () => Diary,
-    diary => diary.diaryImage
-  )
+  @ManyToOne(() => Diary, (diary) => diary.diaryImage, {
+    onDelete: 'CASCADE'
+  })
   @JoinColumn({ name: 'diaryId' })
   diary: Diary;
 }

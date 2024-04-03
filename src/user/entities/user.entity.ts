@@ -26,21 +26,12 @@ export class User {
   @Column({ nullable: true })
   memo: string;
 
-  @OneToMany(
-    () => Diary, 
-    diary => diary.user
-  )
+  @OneToMany(() => Diary, (diary) => diary.user)
   diary: Diary;
 
-  @OneToMany(
-    () => Like, 
-    likes => likes.user
-  )
+  @OneToMany(() => Like, (likes) => likes.user)
   likes: Like;
 
-  @OneToMany(
-    () => Comment,
-    comment => comment.user
-  )
+  @OneToMany(() => Comment, (comment) => comment.user)
   comment: Comment;
 }
