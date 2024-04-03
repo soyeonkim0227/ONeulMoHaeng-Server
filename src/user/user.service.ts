@@ -141,7 +141,6 @@ export class UserService {
     const access = await this.jwt.verify(accesstoken, {
       secret: process.env.JWT_SECRET_ACCESS,
     });
-    console.log({ access });
 
     if (!access) throw new UnauthorizedException('리프레시 토큰 검증 필요');
 
