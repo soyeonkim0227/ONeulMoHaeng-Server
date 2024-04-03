@@ -1,4 +1,4 @@
-import { Body, Controller, Headers, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Headers, Param, Patch, Post } from '@nestjs/common';
 import { DiaryService } from './diary.service';
 import { CreateDiaryDto } from './dto/createDiary.dto';
 import { UpdateDiaryDto } from './dto/updateDiary.dto';
@@ -32,5 +32,15 @@ export class DiaryController {
       statusCode: 200,
       statusMsg: 'Ok',
     };
+  }
+
+  @Delete('/:diaryId')
+  async deleteDiary(@Headers('Authorization') accessToken: string, @Param('diaryId') diaryId: number) {
+    await this.diaryService.deleteDiary(accessToken, diaryId);
+
+    return {
+      statusCode: 200,
+      statusMsg: 'Ok'
+    }
   }
 }
