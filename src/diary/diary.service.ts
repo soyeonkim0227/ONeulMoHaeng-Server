@@ -52,7 +52,8 @@ export class DiaryService {
 
     const existDiary = await this.diaryEntity.findOneBy({ id: diaryId });
     if (!existDiary) throw new NotFoundException('존재하지 않는 다이어리');
-    if (userId !== existDiary.userId) throw new ForbiddenException('다이어리 작성자가 아님');
+    if (userId !== existDiary.userId)
+      throw new ForbiddenException('다이어리 작성자가 아님');
 
     await this.diaryEntity.update(diaryId, {
       title,
@@ -77,8 +78,25 @@ export class DiaryService {
 
     const existDiary = await this.diaryEntity.findOneBy({ id: diaryId });
     if (!existDiary) throw new NotFoundException('존재하지 않는 다이어리');
-    if (userId !== existDiary.userId) throw new ForbiddenException('다이어리 작성자가 아님');
+    if (userId !== existDiary.userId)
+      throw new ForbiddenException('다이어리 작성자가 아님');
 
     return await this.diaryEntity.delete(existDiary);
+  }
+
+  async getOneMyDiary(accessToken: string, diaryId: number) {
+    const { userId } = await this.userService.validateAccess(accessToken);
+
+    const existDiary = await this.diaryEntity.findOneBy({ id: diaryId });
+    if (!existDiary) throw new NotFoundException('존재하지 않는 다이어리');
+
+    const isMine = userId === existDiary.userId ? true : false;
+    const existImage = await this.diaryImageEntity.findBy({ diaryId });
+
+    return { 
+      isMine, 
+      existDiary,
+      existImage
+     };
   }
 }
