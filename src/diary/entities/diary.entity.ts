@@ -9,7 +9,6 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
 } from 'typeorm';
 import { DiaryImage } from './diaryImage.entity';
 
@@ -30,14 +29,8 @@ export class Diary {
   @Column({ default: false })
   isShown: boolean;
 
-  @Column({ nullable: true })
-  repImageId: number;
-
   @CreateDateColumn()
   createdAt: Date;
-
-  @UpdateDateColumn({ nullable: true })
-  updatedAt: Date;
 
   @ManyToOne(() => User, (user) => user.diary)
   @JoinColumn({ name: 'userId' })
