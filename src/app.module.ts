@@ -22,11 +22,10 @@ configDotenv();
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       entities: [__dirname + '/**/entity/*.js'],
-			synchronize: false,
-			migrations: [__dirname + '/**/migrations/*.js'],
-			migrationsTableName: 'migrations',
-			autoLoadEntities: true,
-
+      synchronize: false,
+      migrations: [__dirname + '/**/migrations/*.js'],
+      migrationsTableName: 'migrations',
+      autoLoadEntities: true,
     }),
     RedisModule.forRoot({
       readyLog: true,
