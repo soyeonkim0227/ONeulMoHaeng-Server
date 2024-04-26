@@ -29,6 +29,10 @@ export class Diary {
   @Column({ default: false })
   isShown: boolean;
 
+  // TODO: 게시글 생성 날짜를 저장하는게 아니라 사용자가 지정한 날짜를 저장해야함.
+  @Column()
+  date: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
