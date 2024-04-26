@@ -1,9 +1,11 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { DiarySort, ShowOption } from 'src/common/enum';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
@@ -91,27 +93,33 @@ export class DiaryService {
   async getOneMyDiary(accessToken: string, diaryId: number): Promise<object> {
     const { userId } = await this.userService.validateAccess(accessToken);
 
-    const existDiary = await this.diaryEntity.findOneBy({ id: diaryId });
-    if (!existDiary) throw new NotFoundException('존재하지 않는 다이어리');
+    const diary = await this.diaryEntity.findOneBy({ id: diaryId });
+    if (!diary) throw new NotFoundException('존재하지 않는 다이어리');
 
-    const isMine = userId === existDiary.userId ? true : false;
-    const existImage = await this.diaryImageEntity.findBy({ diaryId });
+    const isMine = userId === diary.userId ? true : false;
+    const images = await this.diaryImageEntity.findBy({ diaryId });
 
     return {
       isMine,
-      existDiary,
-      existImage,
+      diary,
+      images,
     };
   }
 
-  async getAllMyDiary(accessToken: string): Promise<object> {
+  async getAllMyDiary(
+    accessToken: string,
+    yearMonth: string,
+    sort: DiarySort,
+    isShown: ShowOption,
+  ): Promise<object> {
     const { userId } = await this.userService.validateAccess(accessToken);
 
-    const myName = await (
-      await this.userEntity.findOneBy({ id: userId })
-    ).nickname;
+    // 2024-02 형식으로 입력받기
+    const regex = /\d{4}-\d{2}/;
+    if (!regex.test(yearMonth))
+      throw new BadRequestException('잘못된 날짜 형식');
 
-    // TODO: 이미지
+    // TODO: 대표 이미지만 뽑아오도록 추가해야 됨.
     const readMy = await this.diaryEntity
       .createQueryBuilder('qb')
       .innerJoin('qb.user', 'user', 'user.id = qb.userId')
@@ -124,12 +132,13 @@ export class DiaryService {
         'count(like.diaryId) AS likeCount',
       ])
       .where('qb.userId = :userId', { userId })
-      .groupBy('qb.id')
-      .getRawMany();
+      .andWhere('qb.date LIKE :date', { date: `${yearMonth}%` })
+      .orderBy('qb.date', `${sort}`)
+      .groupBy('qb.id');
 
-    return {
-      myName,
-      readMy,
-    };
+    if (isShown !== ShowOption.ALL)
+      readMy.andWhere('qb.isShown = :isShown', { isShown });
+
+    return readMy.getRawMany();
   }
 }
