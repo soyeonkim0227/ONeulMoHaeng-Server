@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { CreateDiaryDto } from './dto/createDiary.dto';
@@ -15,13 +16,14 @@ import { DiaryImage } from './entities/diaryImage.entity';
 export class DiaryService {
   constructor(
     private userService: UserService,
+    @InjectRepository(User) private userEntity: Repository<User>,
     @InjectRepository(Diary) private diaryEntity: Repository<Diary>,
     @InjectRepository(DiaryImage)
     private diaryImageEntity: Repository<DiaryImage>,
   ) {}
 
   async createDiary(accessToken: string, diaryDto: CreateDiaryDto) {
-    const { title, content, isShown, imageUrl } = diaryDto;
+    const { title, content, isShown, date, imageUrl } = diaryDto;
     const { userId } = await this.userService.validateAccess(accessToken);
 
     const newDiary = await this.diaryEntity.save({
@@ -29,6 +31,7 @@ export class DiaryService {
       title,
       content,
       isShown,
+      date,
       createdAt: new Date(),
     });
 
@@ -47,7 +50,7 @@ export class DiaryService {
     diaryId: number,
     diaryDto: UpdateDiaryDto,
   ) {
-    const { title, content, isShown, imageUrl } = diaryDto;
+    const { title, content, isShown, date, imageUrl } = diaryDto;
     const { userId } = await this.userService.validateAccess(accessToken);
 
     const existDiary = await this.diaryEntity.findOneBy({ id: diaryId });
@@ -59,6 +62,7 @@ export class DiaryService {
       title,
       content,
       isShown,
+      date,
     });
 
     if (imageUrl) {
@@ -84,7 +88,7 @@ export class DiaryService {
     return await this.diaryEntity.delete(existDiary);
   }
 
-  async getOneMyDiary(accessToken: string, diaryId: number) {
+  async getOneMyDiary(accessToken: string, diaryId: number): Promise<object> {
     const { userId } = await this.userService.validateAccess(accessToken);
 
     const existDiary = await this.diaryEntity.findOneBy({ id: diaryId });
@@ -93,10 +97,39 @@ export class DiaryService {
     const isMine = userId === existDiary.userId ? true : false;
     const existImage = await this.diaryImageEntity.findBy({ diaryId });
 
-    return { 
-      isMine, 
+    return {
+      isMine,
       existDiary,
-      existImage
-     };
+      existImage,
+    };
+  }
+
+  async getAllMyDiary(accessToken: string): Promise<object> {
+    const { userId } = await this.userService.validateAccess(accessToken);
+
+    const myName = await (
+      await this.userEntity.findOneBy({ id: userId })
+    ).nickname;
+
+    // TODO: 이미지
+    const readMy = await this.diaryEntity
+      .createQueryBuilder('qb')
+      .innerJoin('qb.user', 'user', 'user.id = qb.userId')
+      .leftJoin('qb.likes', 'like')
+      .select([
+        'qb.id AS diaryId',
+        'qb.title AS title',
+        'qb.date AS date',
+        'qb.isShown AS isShown',
+        'count(like.diaryId) AS likeCount',
+      ])
+      .where('qb.userId = :userId', { userId })
+      .groupBy('qb.id')
+      .getRawMany();
+
+    return {
+      myName,
+      readMy,
+    };
   }
 }

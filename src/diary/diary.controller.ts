@@ -60,8 +60,21 @@ export class DiaryController {
   async getOneMyDiary(
     @Headers('Authorization') accessToken: string,
     @Param('diaryId') diaryId: number,
-  ) {
+  ): Promise<object> {
     const data = await this.diaryService.getOneMyDiary(accessToken, diaryId);
+
+    return {
+      data,
+      statusCode: 200,
+      statusMsg: 'Ok',
+    };
+  }
+
+  @Get('my')
+  async getAllMyDiary(
+    @Headers('Authorization') accessToken: string,
+  ): Promise<object> {
+    const data = await this.diaryService.getAllMyDiary(accessToken);
 
     return {
       data,

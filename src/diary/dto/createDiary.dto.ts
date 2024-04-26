@@ -13,6 +13,10 @@ export class CreateDiaryDto {
   @IsNotEmpty()
   isShown: boolean;
 
+  @IsString()
+  @IsNotEmpty()
+  date: string;
+
   @IsArray()
   @IsOptional()
   imageUrl?: string[];

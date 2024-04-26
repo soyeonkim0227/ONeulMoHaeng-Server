@@ -1,4 +1,4 @@
-import { IsArray, IsBoolean, IsOptional, IsString } from "class-validator";
+import { IsArray, IsBoolean, IsOptional, IsString } from 'class-validator';
 
 export class UpdateDiaryDto {
   @IsString()
@@ -12,6 +12,10 @@ export class UpdateDiaryDto {
   @IsBoolean()
   @IsOptional()
   isShown?: boolean;
+
+  @IsString()
+  @IsOptional()
+  date: string;
 
   @IsArray()
   @IsOptional()
