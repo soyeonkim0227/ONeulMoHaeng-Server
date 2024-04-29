@@ -9,6 +9,7 @@ import { RedisModule } from '@liaoliaots/nestjs-redis';
 import { APP_FILTER } from '@nestjs/core';
 import { HttpExceptionFilter } from './filter/http-exception.filter';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from './auth/auth.module';
 
 configDotenv();
 
@@ -40,6 +41,7 @@ configDotenv();
     LikeModule,
     CommentModule,
     ImageModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [

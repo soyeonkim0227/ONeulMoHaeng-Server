@@ -5,9 +5,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { AuthService } from 'src/auth/auth.service';
 import { ShowType } from 'src/common/enum';
 import { User } from 'src/user/entities/user.entity';
-import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { CreateDiaryDto } from './dto/createDiary.dto';
 import { GetAllDiaryDto } from './dto/getAllDiary.dto';
@@ -18,16 +18,14 @@ import { DiaryImage } from './entities/diaryImage.entity';
 @Injectable()
 export class DiaryService {
   constructor(
-    private userService: UserService,
-    @InjectRepository(User) private userEntity: Repository<User>,
+    private readonly authService: AuthService,
     @InjectRepository(Diary) private diaryEntity: Repository<Diary>,
-    @InjectRepository(DiaryImage)
-    private diaryImageEntity: Repository<DiaryImage>,
+    @InjectRepository(DiaryImage) private diaryImageEntity: Repository<DiaryImage>,
   ) {}
 
   async createDiary(accessToken: string, diaryDto: CreateDiaryDto) {
     const { title, content, isShown, date, imageUrl } = diaryDto;
-    const { userId } = await this.userService.validateAccess(accessToken);
+    const { userId } = await this.authService.validateAccess(accessToken);
 
     const newDiary = await this.diaryEntity.save({
       userId,
@@ -54,7 +52,7 @@ export class DiaryService {
     diaryDto: UpdateDiaryDto,
   ) {
     const { title, content, isShown, date, imageUrl } = diaryDto;
-    const { userId } = await this.userService.validateAccess(accessToken);
+    const { userId } = await this.authService.validateAccess(accessToken);
 
     const existDiary = await this.diaryEntity.findOneBy({ id: diaryId });
     if (!existDiary) throw new NotFoundException('존재하지 않는 다이어리');
@@ -81,7 +79,7 @@ export class DiaryService {
   }
 
   async deleteDiary(accessToken: string, diaryId: number) {
-    const { userId } = await this.userService.validateAccess(accessToken);
+    const { userId } = await this.authService.validateAccess(accessToken);
 
     const existDiary = await this.diaryEntity.findOneBy({ id: diaryId });
     if (!existDiary) throw new NotFoundException('존재하지 않는 다이어리');
@@ -92,7 +90,7 @@ export class DiaryService {
   }
 
   async getOneMyDiary(accessToken: string, diaryId: number): Promise<object> {
-    const { userId } = await this.userService.validateAccess(accessToken);
+    const { userId } = await this.authService.validateAccess(accessToken);
 
     const diary = await this.diaryEntity.findOneBy({ id: diaryId });
     if (!diary) throw new NotFoundException('존재하지 않는 다이어리');
@@ -111,7 +109,7 @@ export class DiaryService {
     accessToken: string,
     dto: GetAllDiaryDto,
   ): Promise<object> {
-    const { userId } = await this.userService.validateAccess(accessToken);
+    const { userId } = await this.authService.validateAccess(accessToken);
     const { yearMonth, sort, isShown, isMine } = dto;
 
     // 2024-02 형식으로 입력받기
@@ -159,8 +157,6 @@ export class DiaryService {
     } else {
       readMy.andWhere('qb.isShown = :isShown', { isShown: true });
     }
-
-    console.log({ isShown }, { isMine }, { yearMonth }, { sort });
 
     return readMy.getRawMany();
   }

@@ -5,6 +5,7 @@ import { User } from './entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { configDotenv } from 'dotenv';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthService } from 'src/auth/auth.service';
 
 configDotenv();
 
@@ -16,7 +17,7 @@ configDotenv();
       signOptions: { expiresIn: '2h' },
     }),
   ],
-  providers: [UserService],
+  providers: [UserService, AuthService],
   controllers: [UserController],
 })
 export class UserModule {}

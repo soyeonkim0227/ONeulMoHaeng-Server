@@ -7,6 +7,7 @@ import { UserService } from 'src/user/user.service';
 import { User } from 'src/user/entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthService } from 'src/auth/auth.service';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       signOptions: { expiresIn: '2h' },
     }),
   ],
-  providers: [DiaryService, UserService],
+  providers: [DiaryService, UserService, AuthService],
   controllers: [DiaryController],
 })
 export class DiaryModule {}
