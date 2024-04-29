@@ -1,10 +1,10 @@
-export enum DiarySort {
+export enum SortType {
   ASC = 'ASC',
   DESC = 'DESC',
 }
 
-export enum ShowOption {
- FALSE = 'false' ,
- TRUE = 'true',
- ALL = 'all'
+export enum ShowType {
+  FALSE = 0,
+  TRUE = 1,
+  ALL = 'all',
 }

@@ -9,9 +9,9 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { DiarySort, ShowOption } from 'src/common/enum';
 import { DiaryService } from './diary.service';
 import { CreateDiaryDto } from './dto/createDiary.dto';
+import { GetAllDiaryDto } from './dto/getAllDiary.dto';
 import { UpdateDiaryDto } from './dto/updateDiary.dto';
 
 @Controller('diary')
@@ -72,21 +72,12 @@ export class DiaryController {
     };
   }
 
-  @Get('my?')
+  @Get('?')
   async getAllMyDiary(
     @Headers('Authorization') accessToken: string,
-    @Query('year-month') yearMonth: string,
-    @Query('sort') sort: DiarySort,
-    @Query('is-shown') isShown: ShowOption,
-    @Query('is-mine') isMine: boolean,
+    @Query() dto: GetAllDiaryDto,
   ): Promise<object> {
-    const data = await this.diaryService.getAllMyDiary(
-      accessToken,
-      yearMonth,
-      sort,
-      isShown,
-      isMine,
-    );
+    const data = await this.diaryService.getAllMyDiary(accessToken, dto);
 
     return {
       data,

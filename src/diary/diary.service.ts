@@ -5,11 +5,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DiarySort, ShowOption } from 'src/common/enum';
+import { ShowType } from 'src/common/enum';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { CreateDiaryDto } from './dto/createDiary.dto';
+import { GetAllDiaryDto } from './dto/getAllDiary.dto';
 import { UpdateDiaryDto } from './dto/updateDiary.dto';
 import { Diary } from './entities/diary.entity';
 import { DiaryImage } from './entities/diaryImage.entity';
@@ -108,12 +109,10 @@ export class DiaryService {
 
   async getAllMyDiary(
     accessToken: string,
-    yearMonth: string,
-    sort: DiarySort,
-    isShown: ShowOption,
-    isMine: boolean,
+    dto: GetAllDiaryDto,
   ): Promise<object> {
     const { userId } = await this.userService.validateAccess(accessToken);
+    const { yearMonth, sort, isShown, isMine } = dto;
 
     // 2024-02 형식으로 입력받기
     const regex = /\d{4}-\d{2}/;
@@ -145,16 +144,23 @@ export class DiaryService {
           .from(User, 'user')
           .where('user.id = qb.userId');
       })
-      .andWhere('qb.date LIKE :date', { date: `${yearMonth}%` })
+      // .where('qb.date LIKE :date', { date: `${yearMonth}` })
       .orderBy('qb.date', `${sort}`)
       .groupBy('qb.id');
 
+    // feed일 때는 isShown이 true인 것만, my일 때는 isShown 필터링 모두 가능
     if (isMine) {
-      readMy.where('qb.userId = :userId', { userId });
+      readMy.andWhere('qb.userId = :userId', { userId });
+
+      if (isShown !== ShowType.ALL) {
+        console.log({ isShown });
+        readMy.andWhere('qb.isShown = :isShown', { isShown });
+      }
+    } else {
+      readMy.andWhere('qb.isShown = :isShown', { isShown: true });
     }
 
-    if (isShown !== ShowOption.ALL)
-      readMy.andWhere('qb.isShown = :isShown', { isShown });
+    console.log({ isShown }, { isMine }, { yearMonth }, { sort });
 
     return readMy.getRawMany();
   }
