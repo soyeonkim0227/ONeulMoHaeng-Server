@@ -78,12 +78,14 @@ export class DiaryController {
     @Query('year-month') yearMonth: string,
     @Query('sort') sort: DiarySort,
     @Query('is-shown') isShown: ShowOption,
+    @Query('is-mine') isMine: boolean,
   ): Promise<object> {
     const data = await this.diaryService.getAllMyDiary(
       accessToken,
       yearMonth,
       sort,
       isShown,
+      isMine,
     );
 
     return {

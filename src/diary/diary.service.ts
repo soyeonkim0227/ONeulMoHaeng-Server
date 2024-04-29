@@ -111,6 +111,7 @@ export class DiaryService {
     yearMonth: string,
     sort: DiarySort,
     isShown: ShowOption,
+    isMine: boolean,
   ): Promise<object> {
     const { userId } = await this.userService.validateAccess(accessToken);
 
@@ -119,11 +120,11 @@ export class DiaryService {
     if (!regex.test(yearMonth))
       throw new BadRequestException('잘못된 날짜 형식');
 
-    // TODO: 대표 이미지만 뽑아오도록 추가해야 됨.
     const readMy = await this.diaryEntity
       .createQueryBuilder('qb')
       .innerJoin('qb.user', 'user', 'user.id = qb.userId')
       .leftJoin('qb.likes', 'like')
+      .leftJoin('qb.diaryImage', 'image')
       .select([
         'qb.id AS diaryId',
         'qb.title AS title',
@@ -131,10 +132,26 @@ export class DiaryService {
         'qb.isShown AS isShown',
         'count(like.diaryId) AS likeCount',
       ])
-      .where('qb.userId = :userId', { userId })
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('image.imageUrl')
+          .from(DiaryImage, 'image')
+          .where('image.diaryId = qb.id')
+          .limit(1);
+      })
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('user.nickname AS nickname')
+          .from(User, 'user')
+          .where('user.id = qb.userId');
+      })
       .andWhere('qb.date LIKE :date', { date: `${yearMonth}%` })
       .orderBy('qb.date', `${sort}`)
       .groupBy('qb.id');
+
+    if (isMine) {
+      readMy.where('qb.userId = :userId', { userId });
+    }
 
     if (isShown !== ShowOption.ALL)
       readMy.andWhere('qb.isShown = :isShown', { isShown });
