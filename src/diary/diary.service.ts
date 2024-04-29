@@ -144,7 +144,7 @@ export class DiaryService {
           .from(User, 'user')
           .where('user.id = qb.userId');
       })
-      // .where('qb.date LIKE :date', { date: `${yearMonth}` })
+      .where('qb.date LIKE :date', { date: `${yearMonth}%` })
       .orderBy('qb.date', `${sort}`)
       .groupBy('qb.id');
 
