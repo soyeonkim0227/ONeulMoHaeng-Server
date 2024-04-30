@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthService } from 'src/auth/auth.service';
 import { Repository } from 'typeorm';
@@ -22,5 +26,25 @@ export class UserService {
     if (existNickname) throw new ConflictException('이미 존재하는 닉네임');
 
     return await this.userEntity.update(userId, dto);
+  }
+
+  async getUserInfo(accessToken: string, userId: number) {
+    await this.authService.validateAccess(accessToken);
+
+    if (!(await this.userEntity.existsBy({ id: userId })))
+      throw new NotFoundException('존재하지 않는 유저');
+
+    const thisUser = await this.userEntity.findOne({
+      where: { id: userId },
+      select: {
+        id: true,
+        nickname: true,
+        email: true,
+        profileImageUrl: true,
+        shortInform: true,
+      },
+    });
+
+    return thisUser;
   }
 }

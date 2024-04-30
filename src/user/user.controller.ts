@@ -1,6 +1,4 @@
-import { Body, Controller, Get, Headers, Patch, Post } from '@nestjs/common';
-import { LoginRequestDto } from './dto/login.dto';
-import { SignupRequestDto } from './dto/signup.dto';
+import { Body, Controller, Get, Headers, Param, Patch } from '@nestjs/common';
 import { UpdateMyInfo } from './dto/updateMyInfo.dto';
 import { UserService } from './user.service';
 
@@ -16,6 +14,20 @@ export class UserController {
     await this.userService.updateMyInfo(accessToken, dto);
 
     return {
+      statusCode: 200,
+      statusMsg: 'Ok',
+    };
+  }
+
+  @Get('/:userId')
+  async getUserInfo(
+    @Headers('Authorization') accessToken: string,
+    @Param('userId') userId: number,
+  ) {
+    const data = await this.userService.getUserInfo(accessToken, userId);
+
+    return {
+      data,
       statusCode: 200,
       statusMsg: 'Ok',
     };
