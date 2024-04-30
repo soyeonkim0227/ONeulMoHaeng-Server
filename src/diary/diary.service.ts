@@ -20,7 +20,8 @@ export class DiaryService {
   constructor(
     private readonly authService: AuthService,
     @InjectRepository(Diary) private diaryEntity: Repository<Diary>,
-    @InjectRepository(DiaryImage) private diaryImageEntity: Repository<DiaryImage>,
+    @InjectRepository(DiaryImage)
+    private diaryImageEntity: Repository<DiaryImage>,
   ) {}
 
   async createDiary(accessToken: string, diaryDto: CreateDiaryDto) {
@@ -89,7 +90,7 @@ export class DiaryService {
     return await this.diaryEntity.delete(existDiary);
   }
 
-  async getOneMyDiary(accessToken: string, diaryId: number): Promise<object> {
+  async getOneDiary(accessToken: string, diaryId: number): Promise<object> {
     const { userId } = await this.authService.validateAccess(accessToken);
 
     const diary = await this.diaryEntity.findOneBy({ id: diaryId });
@@ -98,6 +99,9 @@ export class DiaryService {
     const isMine = userId === diary.userId ? true : false;
     const images = await this.diaryImageEntity.findBy({ diaryId });
 
+    if (!diary.isShown && !isMine)
+      throw new ForbiddenException('비공개 다이어리는 조회 불가');
+
     return {
       isMine,
       diary,
@@ -105,10 +109,7 @@ export class DiaryService {
     };
   }
 
-  async getAllMyDiary(
-    accessToken: string,
-    dto: GetAllDiaryDto,
-  ): Promise<object> {
+  async getAllDiary(accessToken: string, dto: GetAllDiaryDto): Promise<object> {
     const { userId } = await this.authService.validateAccess(accessToken);
     const { yearMonth, sort, isShown, isMine } = dto;
 
