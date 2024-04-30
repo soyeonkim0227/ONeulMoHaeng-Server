@@ -2,6 +2,7 @@ import { Diary } from 'src/diary/entities/diary.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -22,11 +23,8 @@ export class Comment {
   @Column()
   content: string;
 
-  @Column()
+  @CreateDateColumn()
   createdAt: Date;
-
-  @Column()
-  updatedAt: Date;
 
   @ManyToOne(() => Diary, (diary) => diary.comment, {
     onDelete: 'CASCADE'
