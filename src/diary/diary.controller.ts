@@ -59,11 +59,11 @@ export class DiaryController {
   }
 
   @Get('/my/:diaryId')
-  async getOneMyDiary(
+  async getOneDiary(
     @Headers('Authorization') accessToken: string,
     @Param('diaryId') diaryId: number,
   ): Promise<object> {
-    const data = await this.diaryService.getOneMyDiary(accessToken, diaryId);
+    const data = await this.diaryService.getOneDiary(accessToken, diaryId);
 
     return {
       data,
@@ -73,11 +73,11 @@ export class DiaryController {
   }
 
   @Get('?')
-  async getAllMyDiary(
+  async getAllDiary(
     @Headers('Authorization') accessToken: string,
     @Query() dto: GetAllDiaryDto,
   ): Promise<object> {
-    const data = await this.diaryService.getAllMyDiary(accessToken, dto);
+    const data = await this.diaryService.getAllDiary(accessToken, dto);
 
     return {
       data,
