@@ -34,4 +34,15 @@ export class CommentService {
       createdAt: new Date(),
     });
   }
+
+  async deleteComment(accessToken: string, commentId: number) {
+    const { userId } = await this.authService.validateAccess(accessToken);
+
+    const thisComment = await this.commentEntity.findOneBy({ id: commentId });
+    if (!thisComment) throw new NotFoundException('존재하지 않는 댓글');
+    if (thisComment.userId !== userId)
+      throw new ForbiddenException('댓글 작성자가 아님');
+
+    return await this.commentEntity.delete(thisComment);
+  }
 }
