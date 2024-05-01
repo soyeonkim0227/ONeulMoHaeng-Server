@@ -60,7 +60,7 @@ export class DiaryService {
     if (userId !== existDiary.userId)
       throw new ForbiddenException('다이어리 작성자가 아님');
 
-    await this.diaryEntity.update(diaryId, {
+    await this.diaryEntity.update(existDiary, {
       title,
       content,
       isShown,
@@ -68,7 +68,7 @@ export class DiaryService {
     });
 
     if (imageUrl) {
-      await this.diaryImageEntity.delete(diaryId);
+      await this.diaryImageEntity.delete(existDiary);
 
       imageUrl.map(async (x) => {
         await this.diaryImageEntity.save({
