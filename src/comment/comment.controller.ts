@@ -1,6 +1,15 @@
-import { Body, Controller, Delete, Headers, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Headers,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { AddCommentDto } from './dto/addComment.dto';
+import { UpdateCommentDto } from './dto/updateComment.dto';
 
 @Controller('comment')
 export class CommentController {
@@ -17,6 +26,20 @@ export class CommentController {
     return {
       statusCode: 201,
       statusMsg: 'Created',
+    };
+  }
+
+  @Put('/:commentId')
+  async updateComment(
+    @Headers('Authorization') accessToken: string,
+    @Param('commentId') commentId: number,
+    @Body() dto: UpdateCommentDto
+  ) {
+    await this.commentService.updateComment(accessToken, commentId, dto);
+
+    return {
+      statusCode: 200,
+      statusMsg: 'Ok',
     };
   }
 

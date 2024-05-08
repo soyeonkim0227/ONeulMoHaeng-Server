@@ -8,14 +8,15 @@ import { AuthService } from 'src/auth/auth.service';
 import { Diary } from 'src/diary/entities/diary.entity';
 import { Repository } from 'typeorm';
 import { AddCommentDto } from './dto/addComment.dto';
+import { UpdateCommentDto } from './dto/updateComment.dto';
 import { Comment } from './entities/comment.entity';
 
 @Injectable()
 export class CommentService {
   constructor(
     private readonly authService: AuthService,
-    @InjectRepository(Diary) private diaryEntity: Repository<Diary>,
-    @InjectRepository(Comment) private commentEntity: Repository<Comment>,
+    @InjectRepository(Diary) private readonly diaryEntity: Repository<Diary>,
+    @InjectRepository(Comment) private readonly commentEntity: Repository<Comment>,
   ) {}
 
   async addComment(accessToken: string, diaryId: number, dto: AddCommentDto) {
@@ -33,6 +34,21 @@ export class CommentService {
       content,
       createdAt: new Date(),
     });
+  }
+
+  async updateComment(
+    accessToken: string,
+    commentId: number,
+    dto: UpdateCommentDto,
+  ) {
+    const { userId } = await this.authService.validateAccess(accessToken);
+
+    const thisComment = await this.commentEntity.findOneBy({ id: commentId });
+    if (!thisComment) throw new NotFoundException('존재하지 않는 댓글');
+    if (thisComment.userId !== userId)
+      throw new ForbiddenException('댓글 작성자가 아님');
+
+    return await this.commentEntity.update(thisComment, dto);
   }
 
   async deleteComment(accessToken: string, commentId: number) {
