@@ -14,7 +14,7 @@ export class CommentService {
   constructor(
     private readonly authService: AuthService,
     private readonly diaryRepository: DiaryRepository,
-    private readonly commentRepository: CommentRepository
+    private readonly commentRepository: CommentRepository,
   ) {}
 
   async addComment(accessToken: string, diaryId: number, dto: AddCommentDto) {
@@ -22,10 +22,30 @@ export class CommentService {
 
     const thisDiary = await this.diaryRepository.findOneDiaryById(diaryId);
     if (!thisDiary) throw new NotFoundException('존재하지 않는 다이어리');
-    if (!thisDiary.isShown)
+    if (!thisDiary.isShown && thisDiary.userId !== userId)
       throw new ForbiddenException('비공개 다이어리는 댓글 작성 불가');
 
     return await this.commentRepository.createComment(diaryId, userId, dto);
+  }
+
+  async getAllCommentsByDiaryId(
+    accessToken: string,
+    diaryId: number,
+  ): Promise<object> {
+    const { userId } = await this.authService.validateAccess(accessToken);
+
+    const thisDiary = await this.diaryRepository.findOneDiaryById(diaryId);
+
+    if (!thisDiary) throw new NotFoundException('존재하지 않는 다이어리');
+
+    if (!thisDiary.isShown && thisDiary.userId !== userId)
+      throw new ForbiddenException(
+        '비공개 다이어리의 댓글은 작성자만 볼 수 있음',
+      );
+
+    const comments = await this.commentRepository.getAllComments(diaryId);
+
+    return comments;
   }
 
   async updateComment(
@@ -35,7 +55,9 @@ export class CommentService {
   ) {
     const { userId } = await this.authService.validateAccess(accessToken);
 
-    const thisComment = await this.commentRepository.findOneCommentById(commentId);
+    const thisComment = await this.commentRepository.findOneCommentById(
+      commentId,
+    );
     if (!thisComment) throw new NotFoundException('존재하지 않는 댓글');
     if (thisComment.userId !== userId)
       throw new ForbiddenException('댓글 작성자가 아님');
@@ -46,7 +68,9 @@ export class CommentService {
   async deleteComment(accessToken: string, commentId: number) {
     const { userId } = await this.authService.validateAccess(accessToken);
 
-    const thisComment = await this.commentRepository.findOneCommentById(commentId);
+    const thisComment = await this.commentRepository.findOneCommentById(
+      commentId,
+    );
     if (!thisComment) throw new NotFoundException('존재하지 않는 댓글');
     if (thisComment.userId !== userId)
       throw new ForbiddenException('댓글 작성자가 아님');

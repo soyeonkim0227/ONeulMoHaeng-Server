@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Headers,
   Param,
   Post,
@@ -29,11 +30,28 @@ export class CommentController {
     };
   }
 
+  @Get('/:diaryId')
+  async getAllCommentsByDiaryId(
+    @Headers('Authorization') accessToken: string,
+    @Param('diaryId') diaryId: number,
+  ): Promise<object> {
+    const data = await this.commentService.getAllCommentsByDiaryId(
+      accessToken,
+      diaryId,
+    );
+
+    return {
+      data,
+      statusCode: 200,
+      statusMsg: 'Ok',
+    };
+  }
+
   @Put('/:commentId')
   async updateComment(
     @Headers('Authorization') accessToken: string,
     @Param('commentId') commentId: number,
-    @Body() dto: UpdateCommentDto
+    @Body() dto: UpdateCommentDto,
   ) {
     await this.commentService.updateComment(accessToken, commentId, dto);
 

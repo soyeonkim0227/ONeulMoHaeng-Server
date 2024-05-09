@@ -18,8 +18,21 @@ export class CommentRepository {
 
     comment.diaryId = diaryId;
     comment.userId = userId;
-    comment.content = content,
+    comment.content = content;
     comment.createdAt = new Date();
+
+    const newComment = await this.commentEntity.save(comment);
+
+    return newComment;
+  }
+
+  async getAllComments(diaryId: number): Promise<object> {
+    return await this.commentEntity
+      .createQueryBuilder('qb')
+      .select(['qb.userId AS userId', 'qb.content AS content', 'qb.createdAt AS createdAt'])
+      .where('qb.diaryId = :diaryId', { diaryId })
+      .orderBy('qb.id', 'DESC')
+      .getRawMany();
   }
 
   async findOneCommentById(commentId: number): Promise<Comment> {
