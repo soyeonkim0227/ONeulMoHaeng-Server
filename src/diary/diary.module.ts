@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { DiaryService } from './diary.service';
 import { DiaryController } from './diary.controller';
 import { Diary } from '../shared/entities/diary.entity';
-import { DiaryImage } from './entities/diaryImage.entity';
 import { UserService } from 'src/user/user.service';
 import { User } from 'src/shared/entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
@@ -11,6 +10,7 @@ import { AuthService } from 'src/auth/auth.service';
 import { DiaryRepository } from 'src/shared/repositories/diary.repository';
 import { UserRepository } from 'src/shared/repositories/user.repository';
 import { DiaryImageRepository } from 'src/shared/repositories/diaryImage.repository';
+import { DiaryImage } from 'src/shared/entities/diaryImage.entity';
 
 @Module({
   imports: [
@@ -20,7 +20,14 @@ import { DiaryImageRepository } from 'src/shared/repositories/diaryImage.reposit
       signOptions: { expiresIn: '2h' },
     }),
   ],
-  providers: [DiaryService, DiaryRepository, DiaryImageRepository, UserService, UserRepository, AuthService],
+  providers: [
+    DiaryService,
+    DiaryRepository,
+    DiaryImageRepository,
+    UserService,
+    UserRepository,
+    AuthService,
+  ],
   controllers: [DiaryController],
 })
 export class DiaryModule {}

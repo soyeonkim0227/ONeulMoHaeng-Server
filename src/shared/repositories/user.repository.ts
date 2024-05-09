@@ -50,7 +50,7 @@ export class UserRepository {
     const user = await this.userEntity
       .createQueryBuilder('qb')
       .select(['id', 'nickname', 'email', 'profileImageUrl', 'shortInform'])
-      .where('qb.id = userId', { userId })
+      .where('qb.id = :userId', { userId })
       .getOne();
 
     return user;
