@@ -1,6 +1,6 @@
-import { Comment } from 'src/comment/entities/comment.entity';
-import { Diary } from 'src/diary/entities/diary.entity';
-import { Like } from 'src/like/entities/like.entity';
+import { Comment } from 'src/shared/entities/comment.entity';
+import { Diary } from 'src/shared/entities/diary.entity';
+import { Like } from 'src/shared/entities/like.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('tbl_user')

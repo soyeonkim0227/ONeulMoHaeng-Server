@@ -1,6 +1,6 @@
-import { Comment } from 'src/comment/entities/comment.entity';
-import { Like } from 'src/like/entities/like.entity';
-import { User } from 'src/user/entities/user.entity';
+import { Comment } from 'src/shared/entities/comment.entity';
+import { Like } from 'src/shared/entities/like.entity';
+import { User } from 'src/shared/entities/user.entity';
 import {
   Column,
   CreateDateColumn,

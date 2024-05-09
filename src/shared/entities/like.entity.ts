@@ -1,5 +1,5 @@
-import { Diary } from 'src/diary/entities/diary.entity';
-import { User } from 'src/user/entities/user.entity';
+import { Diary } from 'src/shared/entities/diary.entity';
+import { User } from 'src/shared/entities/user.entity';
 import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
 @Entity('tbl_like')
