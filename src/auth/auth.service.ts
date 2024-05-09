@@ -8,16 +8,13 @@ import * as nodemailer from 'nodemailer';
 import Mail from 'nodemailer/lib/mailer';
 import Redis from 'ioredis';
 import { InjectRedis } from '@liaoliaots/nestjs-redis';
-import * as bcrypt from 'bcrypt';
-
 import { JwtService } from '@nestjs/jwt';
 import { configDotenv } from 'dotenv';
-import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
 import { LoginRequestDto } from 'src/user/dto/login.dto';
 import { SignupRequestDto } from 'src/user/dto/signup.dto';
-import { User } from 'src/user/entities/user.entity';
 import { UserPayloadDto } from 'src/user/dto/userPayload.dto';
+import { UserRepository } from 'src/shared/repositories/user.repository';
+import * as bcrypt from 'bcrypt';
 
 configDotenv();
 
@@ -31,8 +28,8 @@ interface EmailOptions {
 @Injectable()
 export class AuthService {
   constructor(
+    private readonly userRepository: UserRepository,
     @InjectRedis() private readonly redis: Redis,
-    @InjectRepository(User) private userEntity: Repository<User>,
     private jwt: JwtService,
   ) {
     this.tranporter = nodemailer.createTransport({
@@ -79,25 +76,26 @@ export class AuthService {
   }
 
   async signup(signupDto: SignupRequestDto) {
-    const { email, code, password, nickname } = signupDto;
+    const { email, code, nickname, password } = signupDto;
 
-    const existEmail = await this.userEntity.findOneBy({ email });
+    const existEmail = await this.userRepository.findUserByEmail(email);
     if (existEmail) throw new ConflictException('이미 존재하는 이메일');
 
-    const existNickname = await this.userEntity.findOneBy({ nickname });
+    const existNickname = await this.userRepository.existsNickname(nickname);
     if (existNickname) throw new ConflictException('이미 존재하는 닉네임');
+
+    if (!(await this.verifyCode(email, code)))
+      throw new ConflictException('인증번호 불일치 또는 만료');
 
     signupDto.password = await bcrypt.hash(password, 10);
 
-    if (await this.verifyCode(email, code)) {
-      return await this.userEntity.save(signupDto);
-    }
+    return await this.userRepository.createUser(signupDto);
   }
 
   async login(loginDto: LoginRequestDto): Promise<object> {
     const { email, password } = loginDto;
 
-    const findUser = await this.userEntity.findOneBy({ email });
+    const findUser = await this.userRepository.findUserByEmail(email);
     if (!findUser) throw new NotFoundException('존재하지 않는 이메일');
 
     const matchedPw = await bcrypt.compare(password, findUser.password);
