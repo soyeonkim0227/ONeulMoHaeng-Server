@@ -37,7 +37,7 @@ export class DiaryRepository {
     return thisDiary;
   }
 
-  async getAllDiary(userId: number, dto: GetAllDiaryDto): Promise<object> {
+  async getAllDiary(userId: number, dto: GetAllDiaryDto): Promise<object[]> {
     const { yearMonth, sort, isShown, isMine } = dto;
 
     const diaries = await this.diaryEntity
@@ -58,13 +58,13 @@ export class DiaryRepository {
           .from(DiaryImage, 'image')
           .where('image.diaryId = qb.id')
           .limit(1);
-      })
+      }, 'imageUrl')
       .addSelect((subQuery) => {
         return subQuery
-          .select('user.nickname AS nickname')
+          .select('user.nickname')
           .from(User, 'user')
           .where('user.id = qb.userId');
-      })
+      }, 'nickname')
       .where('qb.date LIKE :date', { date: `${yearMonth}%` })
       .orderBy('qb.date', `${sort}`)
       .groupBy('qb.id');
@@ -97,5 +97,36 @@ export class DiaryRepository {
 
   async deleteDiary(diaryId: number) {
     return await this.diaryEntity.delete(diaryId);
+  }
+
+  async getDiaryListOfLikes(userId: number): Promise<object[]> {
+    return await this.diaryEntity
+      .createQueryBuilder('qb')
+      .innerJoin('qb.user', 'user', 'user.id = qb.userId')
+      .leftJoin('qb.likes', 'like')
+      .leftJoin('qb.diaryImage', 'image')
+      .select([
+        'qb.id AS diaryId',
+        'qb.title AS title',
+        'qb.date AS date',
+        'count(like.diaryId) AS likeCount',
+      ])
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('image.imageUrl')
+          .from(DiaryImage, 'image')
+          .where('image.diaryId = qb.id')
+          .limit(1);
+      }, 'imageUrl')
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('user.nickname')
+          .from(User, 'user')
+          .where('user.id = qb.userId');
+      }, 'nickname')
+      .where('like.userId = :userId', { userId })
+      .orderBy('qb.date', 'DESC')
+      .groupBy('qb.id')
+      .getRawMany();
   }
 }
