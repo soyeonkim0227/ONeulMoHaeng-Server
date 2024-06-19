@@ -1,6 +1,15 @@
-import { Body, Controller, Get, Headers, Param, Patch } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Headers,
+  Param,
+  Patch,
+  Res,
+} from '@nestjs/common';
 import { UpdateMyInfo } from './dto/updateMyInfo.dto';
 import { UserService } from './user.service';
+import { Response } from 'express';
 
 @Controller('user')
 export class UserController {
@@ -10,26 +19,21 @@ export class UserController {
   async updateMyInfo(
     @Headers('Authorization') accessToken: string,
     @Body() dto: UpdateMyInfo,
+    @Res() res: Response,
   ) {
     await this.userService.updateMyInfo(accessToken, dto);
 
-    return {
-      statusCode: 200,
-      statusMsg: 'Ok',
-    };
+    return res.status(200).json('Ok').send();
   }
 
   @Get('/:userId')
   async getUserInfo(
     @Headers('Authorization') accessToken: string,
     @Param('userId') userId: number,
+    @Res() res: Response,
   ) {
     const data = await this.userService.getUserInfo(accessToken, userId);
 
-    return {
-      data,
-      statusCode: 200,
-      statusMsg: 'Ok',
-    };
+    return res.status(200).json(data).send();
   }
 }

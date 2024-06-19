@@ -1,55 +1,44 @@
-import { Body, Controller, Get, Headers, Post } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Post, Res } from '@nestjs/common';
 import { LoginRequestDto } from 'src/user/dto/login.dto';
 import { SignupRequestDto } from 'src/user/dto/signup.dto';
 import { AuthService } from './auth.service';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
-  constructor (
-    private readonly authService: AuthService
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Post('mail')
-  async sendMail(@Body('email') email: string) {
+  async sendMail(@Body('email') email: string, @Res() res: Response) {
     await this.authService.sendMail(email);
 
-    return {
-      statusCode: 200,
-      statusMsg: 'Ok',
-    };
+    return res.status(200).json('Ok').send();
   }
 
   @Post('signup')
-  async signup(@Body() signupDto: SignupRequestDto) {
+  async signup(@Body() signupDto: SignupRequestDto, @Res() res: Response) {
     await this.authService.signup(signupDto);
 
-    return {
-      statusCode: 201,
-      statusMsg: 'Created',
-    };
+    return res.status(201).json('Created').send();
   }
 
   @Post('login')
-  async login(@Body() loginDto: LoginRequestDto): Promise<object> {
+  async login(
+    @Body() loginDto: LoginRequestDto,
+    @Res() res: Response,
+  ): Promise<object> {
     const data = await this.authService.login(loginDto);
 
-    return {
-      data,
-      statusCode: 200,
-      statusMsg: 'Ok',
-    };
+    return res.status(200).json(data).send();
   }
 
   @Get('token')
   async validateRefresh(
     @Headers('Authorization') refreshToken: string,
+    @Res() res: Response,
   ): Promise<object> {
     const data = await this.authService.validateRefresh(refreshToken);
 
-    return {
-      data,
-      statusCode: 200,
-      statusMsg: 'Ok',
-    };
+    return res.status(200).json(data).send();
   }
 }
