@@ -10,7 +10,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { DiaryImage } from './diaryImage.entity';
+import { DiaryImage } from 'src/shared/entities/diaryImage.entity';
 
 @Entity('tbl_diary')
 export class Diary {

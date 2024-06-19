@@ -8,8 +8,8 @@ import { AuthService } from 'src/auth/auth.service';
 import { CreateDiaryDto } from './dto/createDiary.dto';
 import { GetAllDiaryDto } from './dto/getAllDiary.dto';
 import { UpdateDiaryDto } from './dto/updateDiary.dto';
-import { DiaryImageRepository } from 'src/shared/repositories/diaryImage.repository';
 import { DiaryRepository } from 'src/shared/repositories/diary.repository';
+import { DiaryImageRepository } from 'src/shared/repositories/diaryImage.repository';
 
 @Injectable()
 export class DiaryService {

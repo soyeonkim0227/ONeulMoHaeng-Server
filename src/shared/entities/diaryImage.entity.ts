@@ -6,7 +6,7 @@ import {
   PrimaryColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Diary } from './diary.entity';
+import { Diary } from 'src/shared/entities/diary.entity';
 
 @Entity('tbl_diary_image')
 export class DiaryImage {

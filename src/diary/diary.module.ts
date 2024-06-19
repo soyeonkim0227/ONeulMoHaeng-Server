@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
 import { DiaryService } from './diary.service';
 import { DiaryController } from './diary.controller';
-import { Diary } from '../shared/entities/diary.entity';
 import { UserService } from 'src/user/user.service';
-import { User } from 'src/shared/entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthService } from 'src/auth/auth.service';
-import { DiaryRepository } from 'src/shared/repositories/diary.repository';
-import { UserRepository } from 'src/shared/repositories/user.repository';
-import { DiaryImageRepository } from 'src/shared/repositories/diaryImage.repository';
+import { User } from 'src/shared/entities/user.entity';
+import { Diary } from 'src/shared/entities/diary.entity';
 import { DiaryImage } from 'src/shared/entities/diaryImage.entity';
+import { DiaryRepository } from 'src/shared/repositories/diary.repository';
+import { DiaryImageRepository } from 'src/shared/repositories/diaryImage.repository';
+import { UserRepository } from 'src/shared/repositories/user.repository';
 
 @Module({
   imports: [
