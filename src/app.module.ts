@@ -16,15 +16,15 @@ configDotenv();
 @Module({
   imports: [
     TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
+      type: 'mysql',
+      host: process.env.DB_HOST,
+      port: 3306,
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [__dirname + '/**/entity/*.js'],
+      entities: [__dirname + '/**/entities/*.entity.{js,ts}'],
       synchronize: false,
-      migrations: [__dirname + '/**/migrations/*.js'],
+      migrations: [__dirname + '/**/migrations/*.ts'],
       migrationsTableName: 'migrations',
       autoLoadEntities: true,
     }),
