@@ -1,5 +1,6 @@
 import {
   ForbiddenException,
+  HttpException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -44,6 +45,7 @@ export class CommentService {
       );
 
     const comments = await this.commentRepository.getAllComments(diaryId);
+    if (!comments) throw new HttpException('No Content', 204);
 
     return comments;
   }

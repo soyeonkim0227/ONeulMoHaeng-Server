@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ForbiddenException,
+  HttpException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -86,7 +87,10 @@ export class DiaryService {
     };
   }
 
-  async getAllDiary(accessToken: string, dto: GetAllDiaryDto): Promise<object> {
+  async getAllDiary(
+    accessToken: string,
+    dto: GetAllDiaryDto,
+  ): Promise<object[]> {
     const { userId } = await this.authService.validateAccess(accessToken);
     const { yearMonth } = dto;
 
@@ -96,6 +100,16 @@ export class DiaryService {
       throw new BadRequestException('잘못된 날짜 형식');
 
     const diaries = await this.diaryRepository.getAllDiary(userId, dto);
+    if (diaries.length === 0) throw new HttpException('No Content', 204);
+
+    return diaries;
+  }
+
+  async getDiaryListOfLikes(accessToken: string): Promise<object[]> {
+    const { userId } = await this.authService.validateAccess(accessToken);
+
+    const diaries = await this.diaryRepository.getDiaryListOfLikes(userId);
+    if (diaries.length === 0) throw new HttpException('No Content', 204);
 
     return diaries;
   }
